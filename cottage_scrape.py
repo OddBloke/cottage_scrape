@@ -40,9 +40,9 @@ def scrape_page(url):
     return prop_prices, next_url
 
 
-def scrape_pages():
+def scrape_pages(start_date):
     prices = {}
-    next_url = BASE_URL
+    next_url = BASE_URL.format(start_date)
     while next_url is not None:
         price_dict, next_url = scrape_page(next_url)
         for cottage_url, price in price_dict.items():
@@ -50,8 +50,8 @@ def scrape_pages():
                 yield cottage_url, price
 
 
-def filter_cottages():
-    for cottage_url, price in scrape_pages():
+def filter_cottages(start_date):
+    for cottage_url, price in scrape_pages(start_date):
         response = _get(cottage_url)
         soup = BeautifulSoup(response.content)
         if ' detached' in soup.find('div', attrs={'class': 'propertydescriptionfull'}).text.lower():
@@ -62,6 +62,8 @@ def filter_cottages():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Find cottages to stay in.')
-    parser.add_argument('start_date')
-    parser.parse_args()
-    pprint.pprint(filter_cottages())
+    parser.add_argument('--start-date', metavar='DD-MM-YYYY', required=True)
+    args = parser.parse_args()
+    if not re.match('([0-9]{2}-){2}[0-9]{4}', args.start_date):
+        parser.error('Start date not in format DD-MM-YYYY')
+    pprint.pprint(filter_cottages(args.start_date))
