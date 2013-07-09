@@ -1,3 +1,4 @@
+import argparse
 import pprint
 import re
 
@@ -5,7 +6,8 @@ import requests
 from BeautifulSoup import BeautifulSoup
 
 
-BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights=7&start=12-10-2013&sortorder=4&trvlperiod=1"
+START_DATE='12-10-2013'
+BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights=7&start={}&sortorder=4&trvlperiod=1".format(START_DATE)
 PRICE_POINT = 300
 
 
@@ -48,7 +50,7 @@ def scrape_pages():
                 yield cottage_url, price
 
 
-def filter():
+def filter_cottages():
     for cottage_url, price in scrape_pages():
         response = _get(cottage_url)
         soup = BeautifulSoup(response.content)
@@ -58,4 +60,8 @@ def filter():
             print 'http://www.cottages4you.co.uk{}'.format(cottage_url), price
 
 
-pprint.pprint(filter())
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Find cottages to stay in.')
+    parser.add_argument('start_date')
+    parser.parse_args()
+    pprint.pprint(filter_cottages())
