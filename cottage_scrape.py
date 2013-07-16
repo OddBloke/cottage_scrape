@@ -11,7 +11,7 @@ FULL_COTTAGE_URL = 'http://www.cottages4you.co.uk{}'
 
 
 def _get(url):
-    return requests.get('http://www.cottages4you.co.uk{}'.format(url))
+    return requests.get(FULL_COTTAGE_URL.format(url))
 
 
 def scrape_page(url):
