@@ -1,4 +1,5 @@
 import argparse
+import logging
 import re
 import sys
 
@@ -6,19 +7,11 @@ import requests
 from BeautifulSoup import BeautifulSoup
 
 
-DEBUG = False
-
 BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights={nights}&start={start_date}&sortorder=4&trvlperiod=1"
 FULL_COTTAGE_URL = 'http://www.cottages4you.co.uk{}'
 
 
-def _debug(msg):
-    if DEBUG:
-        sys.stderr.write(msg + '\n')
-
-
 def _get(url):
-    _debug('GET to {}'.format(url))
     return requests.get(FULL_COTTAGE_URL.format(url))
 
 
@@ -36,7 +29,7 @@ def get_property_details(property_element):
 
 
 def scrape_page(url):
-    _debug('Scraping {}...'.format(url))
+    logging.debug('Scraping {}...'.format(url))
     response = _get(url)
     soup = BeautifulSoup(response.content)
 
@@ -97,7 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
     if args.debug:
-        DEBUG = True
+        logging.basicConfig(level=logging.DEBUG,
+                            format="%(asctime)s %(levelname)s %(message)s")
     if not re.match('([0-9]{2}-){2}[0-9]{4}', args.start_date):
         parser.error('Start date not in format DD-MM-YYYY')
     filter_cottages(args.start_date, args.nights, args.price_point,
