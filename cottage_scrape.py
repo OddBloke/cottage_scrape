@@ -65,12 +65,21 @@ def filter_cottages(start_date, nights, price_point=None,
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Find cottages to stay in.')
+    parser = argparse.ArgumentParser(description='Find cottages to stay in'
+                                                 ' using cottages4you.co.uk.')
     parser.add_argument('--start-date', metavar='DD-MM-YYYY', required=True)
-    parser.add_argument('--nights', type=int, default=7)
-    parser.add_argument('--price-point', metavar='GBP', type=int)
+    parser.add_argument('--nights', type=int, default=7,
+                        help="The number of nights the cottage should be"
+                             " available for (defaults to 7).")
+    parser.add_argument('--price-point', metavar='GBP', type=int,
+                        help="The maximum you want the cottage to cost for"
+                             " the week.")
     parser.add_argument('--description-contains', metavar='TEXT',
-                        action='append')
+                        action='append',
+                        help="A string you want the description of the"
+                             " cottage to include. Can be specified multiple"
+                             " times, all specified strings must be present"
+                             " for a cottage to be output.")
     args = parser.parse_args()
     if not re.match('([0-9]{2}-){2}[0-9]{4}', args.start_date):
         parser.error('Start date not in format DD-MM-YYYY')
