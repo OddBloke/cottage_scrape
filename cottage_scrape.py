@@ -6,9 +6,7 @@ import requests
 from BeautifulSoup import BeautifulSoup
 
 
-START_DATE='12-10-2013'
-BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights=7&start={}&sortorder=4&trvlperiod=1".format(START_DATE)
-PRICE_POINT = 300
+BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights=7&start={start_date}&sortorder=4&trvlperiod=1"
 
 
 def _get(url):
@@ -42,7 +40,7 @@ def scrape_page(url):
 
 def scrape_pages(start_date):
     prices = {}
-    next_url = BASE_URL.format(start_date)
+    next_url = BASE_URL.format(start_date=start_date)
     while next_url is not None:
         price_dict, next_url = scrape_page(next_url)
         for cottage_url, price in price_dict.items():
