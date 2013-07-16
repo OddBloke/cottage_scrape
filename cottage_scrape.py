@@ -14,6 +14,19 @@ def _get(url):
     return requests.get(FULL_COTTAGE_URL.format(url))
 
 
+def get_property_details(property_element):
+    prop_name = property_element.find('a')['href']
+    price_span = property_element.find(attrs={'class': 'rst_basePrice'})
+    now_price = price_span.find(attrs={'class': 'rst_spnNowPrice'})
+    price_text = ''
+    if now_price:
+        price_text = now_price.text
+    else:
+        price_text = price_span.text
+    match = re.search(r'[0-9]{3}.[0-9]{2}', price_text)
+    return prop_name, float(match.group())
+
+
 def scrape_page(url):
     response = _get(url)
     soup = BeautifulSoup(response.content)
@@ -21,16 +34,8 @@ def scrape_page(url):
     properties = soup.findAll(attrs={'class': 'rst_propertyInfo'})
     prop_prices = {}
     for prop in properties:
-        prop_name = prop.find('a')['href']
-        price_span = prop.find(attrs={'class': 'rst_basePrice'})
-        now_price = price_span.find(attrs={'class': 'rst_spnNowPrice'})
-        price_text = ''
-        if now_price:
-            price_text = now_price.text
-        else:
-            price_text = price_span.text
-        match = re.search(r'[0-9]{3}.[0-9]{2}', price_text)
-        prop_prices[prop_name] = float(match.group())
+        prop_name, price = get_property_details(prop)
+        prop_prices[prop_name] = price
     pagination = soup.findAll('a', attrs={'class': 'PaginationLink'})
     next_url = None
     for pagination_link in pagination:
