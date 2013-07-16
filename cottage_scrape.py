@@ -6,7 +6,7 @@ import requests
 from BeautifulSoup import BeautifulSoup
 
 
-BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights=7&start={start_date}&sortorder=4&trvlperiod=1"
+BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights={nights}&start={start_date}&sortorder=4&trvlperiod=1"
 
 
 def _get(url):
@@ -38,17 +38,17 @@ def scrape_page(url):
     return prop_prices, next_url
 
 
-def scrape_pages(start_date):
+def scrape_pages(start_date, nights):
     prices = {}
-    next_url = BASE_URL.format(start_date=start_date)
+    next_url = BASE_URL.format(start_date=start_date, nights=nights)
     while next_url is not None:
         price_dict, next_url = scrape_page(next_url)
         for cottage_url, price in price_dict.items():
             yield cottage_url, price
 
 
-def filter_cottages(start_date, price_point=None):
-    for cottage_url, price in scrape_pages(start_date):
+def filter_cottages(start_date, nights, price_point=None):
+    for cottage_url, price in scrape_pages(start_date, nights):
         if price_point and price > price_point:
             continue
         response = _get(cottage_url)
@@ -62,8 +62,9 @@ def filter_cottages(start_date, price_point=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Find cottages to stay in.')
     parser.add_argument('--start-date', metavar='DD-MM-YYYY', required=True)
+    parser.add_argument('--nights', type=int, default=7)
     parser.add_argument('--price-point', metavar='GBP', type=int)
     args = parser.parse_args()
     if not re.match('([0-9]{2}-){2}[0-9]{4}', args.start_date):
         parser.error('Start date not in format DD-MM-YYYY')
-    filter_cottages(args.start_date, args.price_point)
+    filter_cottages(args.start_date, args.nights, args.price_point)
