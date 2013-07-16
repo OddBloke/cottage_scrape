@@ -7,6 +7,7 @@ from BeautifulSoup import BeautifulSoup
 
 
 BASE_URL = "/england?adult=2&child=0&infant=0&pets=0&partyprofile=1&nights={nights}&start={start_date}&sortorder=4&trvlperiod=1"
+FULL_COTTAGE_URL = 'http://www.cottages4you.co.uk{}'
 
 
 def _get(url):
@@ -47,16 +48,20 @@ def scrape_pages(start_date, nights):
             yield cottage_url, price
 
 
-def filter_cottages(start_date, nights, price_point=None):
+def filter_cottages(start_date, nights, price_point=None,
+                    required_description_strings=[]):
     for cottage_url, price in scrape_pages(start_date, nights):
         if price_point and price > price_point:
             continue
-        response = _get(cottage_url)
-        soup = BeautifulSoup(response.content)
-        if ' detached' in soup.find('div', attrs={'class': 'propertydescriptionfull'}).text.lower():
-            print 'http://www.cottages4you.co.uk{}'.format(cottage_url), price
-        elif ' detached' in soup.find('div', attrs={'class': 'propertyfeature'}).text.lower():
-            print 'http://www.cottages4you.co.uk{}'.format(cottage_url), price
+        if required_description_strings:
+            response = _get(cottage_url)
+            soup = BeautifulSoup(response.content)
+            text = soup.find('div', attrs={'class': 'propertydescriptionfull'}).text.lower()
+            text += soup.find('div', attrs={'class': 'propertyfeature'}).text.lower()
+            if not all([reqd_string.lower() in text
+                        for reqd_string in required_description_strings]):
+                continue
+        print FULL_COTTAGE_URL.format(cottage_url), price
 
 
 if __name__ == '__main__':
@@ -64,7 +69,10 @@ if __name__ == '__main__':
     parser.add_argument('--start-date', metavar='DD-MM-YYYY', required=True)
     parser.add_argument('--nights', type=int, default=7)
     parser.add_argument('--price-point', metavar='GBP', type=int)
+    parser.add_argument('--description-contains', metavar='TEXT',
+                        action='append')
     args = parser.parse_args()
     if not re.match('([0-9]{2}-){2}[0-9]{4}', args.start_date):
         parser.error('Start date not in format DD-MM-YYYY')
-    filter_cottages(args.start_date, args.nights, args.price_point)
+    filter_cottages(args.start_date, args.nights, args.price_point,
+                    args.description_contains)
